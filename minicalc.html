@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <meta name="google" value="notranslate">
+
+
+    <title>CodePen - minicalc</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    
+    <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css'>
+
+        <style>
+      .number,
+.function,
+.special,
+.fake-number {
+  height: 40px;
+  width: 50px;
+  background-color: white;
+  border: 1px #eaedf2 solid;
+  font-size: 2em;
+  color: #b2b1b9;
+  font-family: Montserrat;
+  align-items: center;
+  justify-content: center;
+  transition: .5s;
+  cursor: pointer;
+}
+
+h6 {
+  font-family: Montserrat;
+  color: #e2e5e9;
+  font-size: 0.8em;
+}
+
+p {
+  text-align: center;
+}
+
+.screen {
+  margin-right: 2px;
+  border-top: 0px;
+  text-align: right;
+}
+
+.screenbox {
+  height: 50px;
+  width: 150px;
+  background-color: #9fa7b4;
+  border: 1px #eaedf2 solid;
+  font-size: 2.2em;
+  color: white;
+  font-family: Inconsolata;
+  border-top: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+  justify-content: center;
+  cursor: default;
+}
+
+.banner {
+  height: 30px;
+  width: 150px;
+  background-color: #333945;
+  border: 1px #eaedf2 solid;
+  border-bottom: 0px;
+  font-size: 1em;
+  color: white;
+  font-family: Montserrat;
+  border-top: 0px;
+  display: flex;
+  cursor: default;
+}
+
+.banner > p {
+  margin: auto;
+}
+
+.number:hover,
+.function:hover,
+.special:hover, .fake-number:hover {
+  background-color: #FFAAAA;
+}
+
+.flex {
+  display: flex;
+}
+
+.flexouter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#eval {
+  color: white;
+  background-color: #c6de62;
+}
+
+#AC {
+  color: white;
+  background-color: #f66a6d;
+}
+
+#AC:hover {
+  background-color: #d90d10;
+}
+
+#eval:hover {
+  background-color: #a0bd28;
+}
+
+    </style>
+
+    
+    
+    
+  </head>
+
+  <body>
+
+    <link href='https://fonts.googleapis.com/css?family=Montserrat|Inconsolata' rel='stylesheet' type='text/css'>
+<div class="flexouter">
+<div class="flex">
+  <div class="banner"><p>minicalc</p></div>
+</div>
+<div class="flex">
+  <div class="screenbox">
+  <div class="screen" id = "screen"></div>
+  </div>
+</div>
+<div class="flex">
+  <div class="number" id="1">
+    <p>1</p>
+  </div>
+  <div class="number" id="2">
+    <p>2</p>
+  </div>
+  <div class="number" id="3">
+    <p>3</p>
+  </div>
+</div>
+<div class="flex">
+  <div class="number" id="4">
+    <p>4</p>
+  </div>
+  <div class="number" id="5">
+    <p>5</p>
+  </div>
+  <div class="number" id="6">
+    <p>6</p>
+  </div>
+</div>
+<div class="flex">
+  <div class="number" id="7">
+    <p>7</p>
+  </div>
+  <div class="number" id="8">
+    <p>8</p>
+  </div>
+  <div class="number" id="9">
+    <p>9</p>
+  </div>
+</div>
+
+<div class="flex">
+  <div class="number" id="0">
+    <p>0</p>
+  </div>
+
+  <div class="fake-number" id=".">
+    <p>.</p>
+  </div>
+  <div class="function" id="+">
+    <p>+</p>
+  </div>
+  
+</div>
+<div class="flex">
+  <div class="function" id="-">
+    <p>-</p>
+  </div>
+
+  <div class="function" id="*">
+    <p>*</p>
+  </div>
+
+  <div class="function" id="/">
+    <p>/</p>
+  </div>
+</div>
+<div class="flex">
+  <div class="special" id="AC">
+    <p>AC</p>
+  </div>
+<div class="special" id="CE">
+    <p>CE</p>
+  </div>
+
+
+  <div class="special" id="eval">
+    <p>=</p>
+  </div>
+</div>
+  <h6>Will D 2016</h6>
+</div>
+    
+    <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+
+        <script>
+      $(document).ready(function() {
+  //Tracks last input by type of button, used for determining legacy 4-function / housekeeping behaviors
+  var lastClicked = "number";
+  //Represents number from keypad during entry into display
+  var num = "";
+  //The previous value of the calculation
+  var accum = "";
+  //Current value - this is what is displayed on screen
+  var display = "0";
+  //Functions like num but for the 4-functions
+  var operator = "";
+  //Used for swapping accum with display in certain instances
+  var accumOld = "";
+  //Flag set when decimal point is used, to prevent multiple decimals in input
+  var decFlag = false;
+  //Calculated result variable passed back to display
+  var result = "";
+  //Holds value to be repeatedly applied when = is repeatedly pressed
+  var buffer = "";
+
+  //AC function - clears memory and resets calculator
+  function acFunc() {
+    lastClicked = "number";
+    num = "";
+    accum = "";
+    display = "0";
+    operator = "";
+    accumOld = "";
+    decFlag = false;
+    result = "";
+    buffer = "";
+    $(".screen").html(display);
+    //console.log("AC Function Called, Display:", display);
+  }
+  //////////////////////////////////////////////////////////////////
+  //////Evaluation function.  Evaluates and handles errors.//////////
+  /////////////////////////////////////////////////////////////
+  function evaluate() {
+    //If the previous click was on the equals button, applies the same operation again.  This emulates physical 4 function calculator of 4x4== -> 64, with
+    //repeated = signs continuing to multiply 4 each time.  Applies to all operations.  Keeps the number to be repeatedly applied in the buffer var
+    if (lastClicked === "eval") {
+      console.log("Start", lastClicked, accum, operator, display, buffer);
+      result = eval([display, operator, buffer].join(""));
+      display = result.toString();
+      $(".screen").html(display);
+      console.log("End", lastClicked, accum, operator, display, buffer);
+
+    }
+
+    //Standard operation for if last click was a number, as in 4+4=.  Records a buffer variable in case above case (repeated =) is desired next.   
+    if (lastClicked === "number") {
+      console.log("Start", lastClicked, accum, operator, display, buffer);
+      result = eval([accum, operator, display].join(""));
+      buffer = display;
+      display = result.toString();
+      $(".screen").html(display);
+      accum = (result).toString();
+      console.log("End", lastClicked, accum, operator, display, buffer, result);
+    }
+
+    //Supports operations of format 4*=, which results in 4 times itself.  Applies for all numbers ie number /= results in 1 for all numbers
+    if (lastClicked === "function" || operator === "") {
+      console.log("Start", lastClicked, accum, operator, display, buffer);
+      result = eval([accum, operator, accum].join(""));
+      display = result.toString();
+      $(".screen").html(display);
+      buffer = accum;
+      console.log("End", lastClicked, accum, operator, display, buffer);
+    }
+
+    //Error Handling   - gives ERR message if number is invalid (ie divide by zero) or too many digits.  Rounds long decimals to fit screen
+    // If a long decimal is rounded to fit the screen and found to end in terminal zeroes (evidence of floating point issues) truncates all 0s.
+    if (Number(display) === NaN || Number(display) === Infinity || (display).toString().length > 9 && Number(display) > 9999999.99) {
+      $(".screen").html("ERR.");
+    } else if ((display).toString().length > 9 && Number(display) <= 9999999.99) {
+      var trunc = Number(display).toFixed(8 - display.split(".")[0].length);
+      trunc = trunc.replace(/0+$/, "");
+      $(".screen").html(trunc);
+    } else {
+      $(".screen").html(display);
+    }
+  }
+  /////////////////////////////////////////////////////////////
+  //////////////End of giant horrible evaluation function///
+  //This should handle most of the contextual logic of physical calculator
+  //////////////////////////////////////////////////////////
+
+  //AC on Startup just to make sure everything is cleared out.
+  acFunc();
+
+  //AC Button
+  $("#AC").click(function() {
+    acFunc()
+  });
+
+  //CE Button
+  $("#CE").click(function() {
+    display = "0";
+    decFlag = false;
+    $(".screen").html(display);
+  });
+
+  //Number Buttons - refuse to enter if there are too many numbers on screen, overwrites solitary zeroes, 
+  $(".number").on('click', '> *', function() {
+    if (lastClicked === "eval") {
+      acFunc();
+    }
+    console.log(lastClicked);
+    num = $(this).parent().attr('id');
+
+    if (Number(display) === 0 && display[display.length - 1] !== ".") {
+      console.log("Debug Point 1", Number(display), display[display.length - 1])
+      display = "";
+      display += (num);
+
+    } else if (display.length >= 9) {
+      console.log("Debug Point 2", Number(display), display.length);
+    } else {
+      console.log("Debug Point 2.5", "Display number:", Number(display), "Length", display.length);
+      display += (num);
+      console.log("Debug Point 3", Number(display), display.length);
+    }
+
+    lastClicked = $(this).parent().attr('class');
+
+    $(".screen").html(display)
+  });
+  //Decimal Point - handles inserting decimal and prevents multiple decimals.
+  $(".fake-number").on('click', '> *', function() {
+
+    if (lastClicked === "eval") {
+      acFunc();
+    }
+    if (decFlag === false) {
+      num = $(this).parent().attr('id');
+      display += (num);
+      lastClicked = "number";
+      //Prevents entering 5.4.3 or the like with multiple decimals
+      decFlag = true;
+    }
+
+    $(".screen").html(display);
+
+  });
+
+  //On click of an operator (+ - * /) passes that to the global operator variable from the button ID.  Context-sensitive actions for clearing zeroes etc.
+  $(".function").click(function() {
+    if (lastClicked === "number" && Number(accum) !== 0) {
+      evaluate()
+    };
+    operator = $(this).attr('id');
+    if (lastClicked === "number" || lastClicked === "eval") {
+      decFlag = false;
+      accum = display;
+      display = "";
+    }
+    lastClicked = $(this).attr('class');
+
+  });
+  //Handles equals sign.  Sets last clicked to "eval" to handle repeated presses.
+  $("#eval").click(function() {
+    evaluate();
+    lastClicked = 'eval';
+  });
+
+});
+      //@ sourceURL=pen.js
+    </script>
+
+    
+    
+    
+  </body>
+</html>
+ 
